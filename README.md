@@ -1,8 +1,11 @@
 # Fullstack Capstone
+
 ## Bill Splitter Back End
 
 ### Description
+
 Back end application for Capstone bill splitting application using:
+
 - Express
 - Sequelize
 - PostgreSQL
@@ -10,15 +13,18 @@ Back end application for Capstone bill splitting application using:
 - AWS
 
 ## Prerequisites
+
 - Node.js
 - Serverless Framework
   - `npm install -g serverless`
 - AWS Account with credentials
 
 ## Getting Started
+
 1. Clone repo
 2. Run `npm install`
 3. Add .env file in root folder
+
 ```
 AWS_ACCESS_KEY_ID=<ACCESS_KEY_ID_HERE>
 AWS_SECRET_ACCESS_KEY=<ACCESS_KEY_HERE>
@@ -30,8 +36,13 @@ DB_USER=<DB_USER>
 ```
 
 ## Running Dev Mode
-`serverless dev`
+
+- `serverless login`
+
+- Enter credentials in browser
+
+- `serverless dev`
 
 ## Deploying
-`serverless deploy`
 
+`serverless deploy`
