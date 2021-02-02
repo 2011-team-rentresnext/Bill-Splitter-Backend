@@ -18,7 +18,7 @@ Back end application for Capstone bill splitting application using:
 ## Getting Started
 1. Clone repo
 2. Run `npm install`
-3. Add .env file
+3. Add .env file in root folder
 ```
 AWS_ACCESS_KEY_ID=<ACCESS_KEY_ID_HERE>
 AWS_SECRET_ACCESS_KEY=<ACCESS_KEY_HERE>
