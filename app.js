@@ -3,20 +3,23 @@
 // eslint-disable-next-line import/no-unresolved
 const express = require("express");
 const { db } = require("./db");
-const Test = require("./db/test");
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/user", async (req, res, next) => {
+app.use("/api", require("./routes"));
+
+app.get("/syncDb", async (req, res, next) => {
   try {
-    // await db.sync({ force: true });
-    console.log(req.body);
-    const newUser = await Test.create(req.body);
-    res.json(newUser);
-  } catch (error) {
-    next(error);
+    if (req.query.force) {
+      await db.sync({ force: true });
+    } else {
+      await db.sync();
+    }
+    res.send("successfully synced!");
+  } catch (err) {
+    next(err);
   }
 });
 
