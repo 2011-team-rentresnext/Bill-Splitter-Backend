@@ -4,7 +4,7 @@ require('dotenv').config();
 const db = new Sequelize('', process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
   port: 5432,
-  logging: console.log,
+  logging: false,
   maxConcurrentQueries: 100,
   dialect: 'postgres',
   ssl: 'Amazon RDS',
