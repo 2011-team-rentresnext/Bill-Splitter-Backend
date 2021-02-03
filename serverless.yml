@@ -5,6 +5,7 @@ name: express-starter
 
 inputs:
   src: ./
+  timeout: 30
   env:
     DB_HOST: ${env:DB_HOST}
     DB_USER: ${env:DB_USER}
