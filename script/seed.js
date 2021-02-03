@@ -1,5 +1,4 @@
 'use strict';
-
 const db = require('../db');
 const { User, Item, Receipt, ItemizedTransaction } = require('../db/models');
 const faker = require('faker');
