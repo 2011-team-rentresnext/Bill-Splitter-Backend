@@ -45,22 +45,10 @@ app.use((req, res, next) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
+// API ROUTES
 app.use("/api", require("./routes"));
 
-app.get("/syncDb", async (req, res, next) => {
-  try {
-    if (req.query.force) {
-      await db.sync({ force: true });
-    } else {
-      await db.sync();
-    }
-    res.send("successfully synced!");
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Routes
+// Default Route
 app.get("/*", async (req, res, next) => {
   try {
     res.send(

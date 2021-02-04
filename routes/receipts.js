@@ -3,6 +3,9 @@ const { Op } = require("sequelize");
 const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
 module.exports = router;
 
+/*
+Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
+*/
 router.get("/:receiptId", async (req, res, next) => {
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
@@ -35,6 +38,74 @@ router.get("/:receiptId", async (req, res, next) => {
       ],
     });
     res.json(receipt);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
+/*
+Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
+*/
+router.post("/:receiptId/settle", async (req, res, next) => {
+  try {
+    console.log("Settling for user: ", req.user.id);
+    //look up receipt where id matches user and paid is false
+    const receipt = await Receipt.findByPk(+req.params.receiptId, {
+      include: [
+        {
+          model: Item,
+          include: [
+            {
+              model: ItemizedTransaction,
+              where: {
+                debtorId: req.user.id,
+                paid: false,
+              },
+            },
+          ],
+        },
+        {
+          model: User,
+          as: "creditor",
+        },
+      ],
+    });
+
+    if (!receipt) next(new Error("No receipt found"));
+
+    // check that items were found
+    if (receipt.items.length) {
+      //loop over every item
+      for (let i = 0; i < receipt.items.length; i++) {
+        let currentItem = receipt.items[i];
+        // check if item has itemizedTransactions
+        if (currentItem.itemizedTransactions.length) {
+          // loop over itemized transactions
+          for (let j = 0; j < currentItem.itemizedTransactions.length; j++) {
+            let currentItemizedTransaction =
+              currentItem.itemizedTransactions[j];
+            // check that debtor id matches the user
+            if (currentItemizedTransaction.debtorId === req.user.id) {
+              // set status of transaction to paid
+              await currentItemizedTransaction.update({ paid: true });
+              console.log(
+                "Updated itemized transaction: ",
+                currentItemizedTransaction.id,
+                " for user: ",
+                req.user.id
+              );
+            }
+          }
+        }
+      }
+    } else {
+      // If there are no items found that match criteria
+      res.status(400).send("No outstanding debts found for that receipt");
+      return;
+    }
+
+    res.send("success");
   } catch (err) {
     console.log(err);
     next(err);
