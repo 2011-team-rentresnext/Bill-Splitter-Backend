@@ -1,11 +1,11 @@
-'use strict';
-const db = require('../db');
-const { User, Item, Receipt, ItemizedTransaction } = require('../db/models');
-const faker = require('faker');
+"use strict";
+const db = require("../db");
+const { User, Item, Receipt, ItemizedTransaction } = require("../db/models");
+const faker = require("faker");
 
 async function seed() {
   await db.sync({ force: true });
-  console.log('db synced!');
+  console.log("db synced!");
 
   /* --------------------users---------------------------*/
   const usersCreated = [];

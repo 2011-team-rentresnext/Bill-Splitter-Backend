@@ -1,13 +1,13 @@
-const Sequelize = require('sequelize');
-const db = require('../db');
+const Sequelize = require("sequelize");
+const db = require("../db");
 
-const ItemizedTransaction = db.define('itemizedTransaction', {
-  // id: {
-  //   type: Sequelize.INTEGER,
-  //   primaryKey: true,
-  //   autoIncrement: true,
-  //   allowNull: false
-  // },
+const ItemizedTransaction = db.define("itemizedTransaction", {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
   amountOwed: {
     type: Sequelize.INTEGER,
     allowNull: false,

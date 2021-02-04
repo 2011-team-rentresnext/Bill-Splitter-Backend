@@ -11,13 +11,16 @@ Item.belongsTo(Receipt);
 
 User.belongsToMany(Item, {
   through: ItemizedTransaction,
-  foreignKey: 'debtorId',
+  foreignKey: "debtorId",
 });
 
 Item.belongsToMany(User, {
   through: ItemizedTransaction,
-  otherKey: 'debtorId',
+  otherKey: "debtorId",
 });
+
+Item.hasMany(ItemizedTransaction);
+ItemizedTransaction.belongsTo(User, { as: "debtor" });
 
 module.exports = {
   User,
