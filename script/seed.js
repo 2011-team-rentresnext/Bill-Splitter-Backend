@@ -1,11 +1,11 @@
-'use strict';
-const db = require('../db');
-const { User, Item, Receipt, ItemizedTransaction } = require('../db/models');
-const faker = require('faker');
+"use strict";
+const db = require("../db");
+const { User, Item, Receipt, ItemizedTransaction } = require("../db/models");
+const faker = require("faker");
 
 async function seed() {
   await db.sync({ force: true });
-  console.log('db synced!');
+  console.log("db synced!");
 
   /* --------------------users---------------------------*/
   const usersCreated = [];
@@ -33,7 +33,54 @@ async function seed() {
 
   const users = await Promise.all(usersCreated);
 
+  /* --------------------receipts---------------------------*/
+
+  const receipts = [];
+  for (let i = 0; i < 50; i++) {
+    const user = users[i];
+    const receipt = await Receipt.create({
+      creditorId: user.id,
+      total: Math.floor(Math.random() * 15000),
+    });
+    receipts.push(receipt);
+  }
+
+  /* --------------------items---------------------------*/
+
+  const items = [];
+
+  for (const receipt of receipts) {
+    const randNum = Math.random() * 10;
+    for (let i = 0; i < randNum; i++) {
+      const item = await Item.create({
+        receiptId: receipt.id,
+        name: faker.lorem.words(),
+        price: Math.ceil(Math.random() * 5000),
+        quantity: Math.ceil(Math.random() * 5),
+      });
+      items.push(item);
+    }
+  }
+
+  /* --------------------itemizedTransactions---------------------------*/
+
+  const itemizedTransactions = [];
+
+  for (let i = 0; i < items.length / 3; i++) {
+    const item = items[Math.floor(Math.random() * items.length)];
+    const itemizedTransaction = await ItemizedTransaction.create({
+      debtorId: Math.ceil(Math.floor(Math.random() * 50 + 50)),
+      itemId: item.id,
+      amountOwed: item.price,
+      paid: [false, true][Math.floor(Math.random() * 2)],
+    });
+    itemizedTransactions.push(itemizedTransaction);
+  }
+
   console.log(`seeded ${users.length} users`);
+  console.log(`seeded ${receipts.length} receipts`);
+  console.log(`seeded ${items.length} items`);
+  console.log(`seeded ${itemizedTransactions.length} itemizedTransactions`);
   console.log(`seeded successfully`);
 }
 
