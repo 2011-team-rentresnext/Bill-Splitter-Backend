@@ -31,82 +31,9 @@ async function seed() {
     usersCreated.push(User.create(user));
   }
 
-  // for testing
-  const testUser = await User.create({
-    firstName: "Mack",
-    lastName: "Elesen",
-    email: "mack@gmail.com",
-    password: "123",
-  });
-
   const users = await Promise.all(usersCreated);
 
-  /* --------------------receipts---------------------------*/
-
-  const receipts = [];
-  for (let i = 0; i < 50; i++) {
-    const user = users[i];
-    const receipt = await Receipt.create({
-      creditorId: user.id,
-      total: Math.floor(Math.random() * 15000),
-    });
-    receipts.push(receipt);
-  }
-
-  const testReceipt = await Receipt.create({ creditorId: 1, total: 100 });
-
-  /* --------------------items---------------------------*/
-
-  const items = [];
-
-  for (const receipt of receipts) {
-    const randNum = Math.random() * 10;
-    for (let i = 0; i < randNum; i++) {
-      const item = await Item.create({
-        receiptId: receipt.id,
-        name: faker.lorem.words(),
-        price: Math.ceil(Math.random() * 5000),
-        quantity: Math.ceil(Math.random() * 5),
-      });
-      items.push(item);
-    }
-  }
-
-  const testItem = await Item.create({
-    receiptId: testReceipt.id,
-    name: "fish",
-    price: 50,
-    quantity: 1,
-  });
-
-  /* --------------------itemizedTransactions---------------------------*/
-
-  const itemizedTransactions = [];
-
-  for (let i = 0; i < items.length / 3; i++) {
-    const item = items[Math.floor(Math.random() * items.length)];
-    const itemizedTransaction = await ItemizedTransaction.create({
-      debtorId: Math.ceil(Math.floor(Math.random() * 50 + 50)),
-      itemId: item.id,
-      amountOwed: item.price,
-      paid: [false, true][Math.floor(Math.random() * 2)],
-    });
-    itemizedTransactions.push(itemizedTransaction);
-  }
-
-  const testItemizedTransaction = await ItemizedTransaction.create({
-    debtorId: testUser.id,
-    itemId: testItem.id,
-    amountOwed: 50,
-    paid: false,
-  });
-
-  await receipts[0].update({ creditorId: testUser.id });
-
   console.log(`seeded ${users.length} users`);
-  console.log(`seeded ${receipts.length} receipts`);
-  console.log(`seeded ${items.length} items`);
-  console.log(`seeded ${itemizedTransactions.length} itemizedTransactions`);
   console.log(`seeded successfully`);
 }
 
