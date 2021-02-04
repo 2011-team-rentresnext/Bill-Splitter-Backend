@@ -32,6 +32,7 @@ async function seed() {
   }
 
   const users = await Promise.all(usersCreated);
+  console.log('fullName', users[0].fullName);
 
   /* --------------------receipts---------------------------*/
 
@@ -88,16 +89,16 @@ async function seed() {
 // This way we can isolate the error handling and exit trapping.
 // The `seed` function is concerned only with modifying the database.
 async function runSeed() {
-  console.log("seeding...");
+  console.log('seeding...');
   try {
     await seed();
   } catch (err) {
     console.error(err);
     process.exitCode = 1;
   } finally {
-    console.log("closing db connection");
+    console.log('closing db connection');
     await db.close();
-    console.log("db connection closed");
+    console.log('db connection closed');
   }
 }
 

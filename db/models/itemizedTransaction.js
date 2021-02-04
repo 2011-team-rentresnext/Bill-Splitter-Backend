@@ -8,12 +8,6 @@ const ItemizedTransaction = db.define('itemizedTransaction', {
   //   autoIncrement: true,
   //   allowNull: false
   // },
-  // amount: {
-  //   type: Sequelize.VIRTUAL,
-  //   get() {
-  //     // return ?????;
-  //   },
-  // },
   amountOwed: {
     type: Sequelize.INTEGER,
     allowNull: false,

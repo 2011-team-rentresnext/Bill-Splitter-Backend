@@ -20,7 +20,10 @@ const User = db.define('user', {
   fullName: {
     type: Sequelize.VIRTUAL,
     get() {
-      return this.firstName + ' ' + this.lastName;
+      return `${this.firstName} ${this.lastName}`;
+    },
+    set(value) {
+      throw new Error('Do not try to set the `fullName` value!');
     },
   },
   isAdmin: {
