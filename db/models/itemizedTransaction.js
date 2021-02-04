@@ -27,6 +27,7 @@ const ItemizedTransaction = db.define('itemizedTransaction', {
     validate: {
       notEmpty: true,
     },
+    defaultValue: false,
   },
   // percentage: {
   //   type: Sequelize.INTEGER,
