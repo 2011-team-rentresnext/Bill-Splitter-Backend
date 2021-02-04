@@ -4,6 +4,9 @@ const User = require("../db/models/user");
 module.exports = router;
 
 // /api/users/search?name=<NAME>
+/*
+Takes in a name (search term) and searches for users in the DB that match that name, returns an array of users matching the search term
+*/
 router.get("/search", async (req, res, next) => {
   try {
     if (req.query.name) {
