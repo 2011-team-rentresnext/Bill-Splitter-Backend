@@ -1,13 +1,10 @@
-const User = require("./user");
-console.log(User);
-const Item = require("./item");
-console.log(Item);
-const ItemizedTransaction = require("./itemizedTransaction");
-const Receipt = require("./receipt");
-console.log(ItemizedTransaction);
+const User = require('./user');
+const Item = require('./item');
+const ItemizedTransaction = require('./itemizedTransaction');
+const Receipt = require('./receipt');
 
-User.hasMany(Receipt);
-Receipt.belongsTo(User, { as: "creditor" });
+User.hasMany(Receipt, { foreignKey: 'creditorId' });
+Receipt.belongsTo(User, { foreignKey: 'creditorId' });
 
 Receipt.hasMany(Item);
 Item.belongsTo(Receipt);

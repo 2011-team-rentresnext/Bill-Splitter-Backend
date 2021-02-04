@@ -8,12 +8,6 @@ const ItemizedTransaction = db.define("itemizedTransaction", {
     autoIncrement: true,
     allowNull: false,
   },
-  // amount: {
-  //   type: Sequelize.VIRTUAL,
-  //   get() {
-  //     // return ?????;
-  //   },
-  // },
   amountOwed: {
     type: Sequelize.INTEGER,
     allowNull: false,
@@ -27,6 +21,7 @@ const ItemizedTransaction = db.define("itemizedTransaction", {
     validate: {
       notEmpty: true,
     },
+    defaultValue: false,
   },
   // percentage: {
   //   type: Sequelize.INTEGER,
