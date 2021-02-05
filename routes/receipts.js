@@ -1,8 +1,8 @@
 const router = require("express").Router({ mergeParams: true });
 const { Op } = require("sequelize");
 const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
-import { API_KEY } from "../secrets";
-const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
+const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_CLOUD_API_KEY}`;
+const fetch = require("node-fetch");
 module.exports = router;
 
 /* 
