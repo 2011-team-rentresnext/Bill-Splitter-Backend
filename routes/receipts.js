@@ -103,6 +103,55 @@ router.get("/:receiptId", async (req, res, next) => {
   }
 });
 
+// assigns users to receipt
+/*
+Example request:
+[
+    {
+        "userId": 102,
+        "assignedItems": [
+            {
+                "itemId": 270,
+                "price": 2487
+            },
+            {
+                "itemId": 271,
+                "price": 1922
+            }
+        ]
+    },
+    {
+        "userId": 103,
+        "assignedItems": [
+            {
+                "itemId": 272,
+                "price": 3127
+            }
+        ]
+    }
+]
+*/
+router.post("/:receiptId/assign", async (req, res, next) => {
+  try {
+    for (let i = 0; i < req.body.length; i++) {
+      let currentAssignment = req.body[i];
+      let currentUser = currentAssignment.userId;
+      for (let j = 0; j < currentAssignment.assignedItems.length; j++) {
+        let currentItem = currentAssignment.assignedItems[j];
+        await ItemizedTransaction.create({
+          amountOwed: currentItem.price,
+          debtorId: currentUser,
+          itemId: currentItem.itemId,
+        });
+      }
+    }
+    res.send("Success");
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 /*
 Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
 */
