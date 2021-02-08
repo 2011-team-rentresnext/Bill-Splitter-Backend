@@ -14,10 +14,6 @@ const app = express();
 // middleware
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
-<<<<<<< HEAD
-=======
-
->>>>>>> 7826adc3c6609be17154d25fd4679121c6e576a4
 // passport registration
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
@@ -49,10 +45,6 @@ app.use((req, res, next) => {
 });
 app.use(passport.initialize());
 app.use(passport.session());
-<<<<<<< HEAD
-=======
-
->>>>>>> 7826adc3c6609be17154d25fd4679121c6e576a4
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "*");
@@ -60,10 +52,6 @@ app.use(function (req, res, next) {
   res.header("x-powered-by", "serverless-express");
   next();
 });
-<<<<<<< HEAD
-=======
-
->>>>>>> 7826adc3c6609be17154d25fd4679121c6e576a4
 // API ROUTES
 app.use("/api", require("./routes"));
 
