@@ -1,8 +1,8 @@
-const router = require('express').Router({ mergeParams: true });
-const { Op } = require('sequelize');
-const { Receipt, Item, ItemizedTransaction, User } = require('../db/models');
-const callGoogleVisionAsync = require('../db/utils/parser');
-console.log('testing console.log')
+const router = require("express").Router({ mergeParams: true });
+const { Op } = require("sequelize");
+const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
+const callGoogleVisionAsync = require("../db/utils/parser");
+console.log("testing console.log");
 module.exports = router;
 
 // Receipt.create({total, req.user.id})
@@ -11,9 +11,9 @@ module.exports = router;
 // })
 
 // API/RECEIPTS/
-router.post('/', async (req, res, next) => {
+router.post("/", async (req, res, next) => {
   try {
-    console.log('Receipts post route!!!!');
+    console.log("Receipts post route!!!!");
     const receiptObj = await callGoogleVisionAsync(req.body.base64);
     console.log(receiptObj);
     // make sequelize objects
@@ -22,7 +22,7 @@ router.post('/', async (req, res, next) => {
       creditorId: req.user.id,
     });
 
-    const seqItems = []
+    const seqItems = [];
 
     for (let i = 0; i < receiptObj.items.length; i++) {
       const item = receiptObj.items[i];
@@ -30,13 +30,12 @@ router.post('/', async (req, res, next) => {
         name: item.name,
         price: item.price,
         receiptId: seqReceipt.id,
-
       });
       seqItems.push(seqItem);
     }
 
-    seqReceipt.items = seqItems
-    console.log('seqReceipt---->', seqReceipt);
+    seqReceipt.items = seqItems;
+    console.log("seqReceipt---->", seqReceipt);
     res.json(seqReceipt);
   } catch (err) {
     next(err);
@@ -46,34 +45,33 @@ router.post('/', async (req, res, next) => {
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
 */
-router.get('/:receiptId', async (req, res, next) => {
+router.get("/:receiptId", async (req, res, next) => {
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
-      attributes: [['id', 'receiptId'], 'total'],
+      attributes: [["id", "receiptId"], "total"],
       include: [
         {
           model: Item,
-          attributes: [['id', 'itemId'], 'name', 'price', 'quantity'],
+          attributes: [["id", "itemId"], "name", "price", "quantity"],
           include: [
             {
               model: ItemizedTransaction,
               attributes: [
-                ['id', 'itemizedTransactionId'],
-                'amountOwed',
-                'paid',
+                ["id", "itemizedTransactionId"],
+                "amountOwed",
+                "paid",
               ],
               include: {
                 model: User,
-                as: 'debtor',
-                attributes: [['id', 'debtorId'], 'fullName'],
+                as: "debtor",
+                attributes: [["id", "debtorId"], "firstName", "lastName"],
               },
             },
           ],
         },
         {
           model: User,
-          as: 'creditor',
-          attributes: [['id', 'creditorId'], 'fullName'],
+          attributes: [["id", "creditorId"], "firstName", "lastName"],
         },
       ],
     });
@@ -84,12 +82,61 @@ router.get('/:receiptId', async (req, res, next) => {
   }
 });
 
+// assigns users to receipt
+/*
+Example request:
+[
+    {
+        "userId": 102,
+        "assignedItems": [
+            {
+                "itemId": 270,
+                "price": 2487
+            },
+            {
+                "itemId": 271,
+                "price": 1922
+            }
+        ]
+    },
+    {
+        "userId": 103,
+        "assignedItems": [
+            {
+                "itemId": 272,
+                "price": 3127
+            }
+        ]
+    }
+]
+*/
+router.post("/:receiptId/assign", async (req, res, next) => {
+  try {
+    for (let i = 0; i < req.body.length; i++) {
+      let currentAssignment = req.body[i];
+      let currentUser = currentAssignment.userId;
+      for (let j = 0; j < currentAssignment.assignedItems.length; j++) {
+        let currentItem = currentAssignment.assignedItems[j];
+        await ItemizedTransaction.create({
+          amountOwed: currentItem.price,
+          debtorId: currentUser,
+          itemId: currentItem.itemId,
+        });
+      }
+    }
+    res.send("Success");
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 /*
 Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
 */
-router.put('/:receiptId/settle', async (req, res, next) => {
+router.put("/:receiptId/settle", async (req, res, next) => {
   try {
-    console.log('Settling for user: ', req.user.id);
+    console.log("Settling for user: ", req.user.id);
     //look up receipt where id matches user and paid is false
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
       include: [
@@ -107,12 +154,12 @@ router.put('/:receiptId/settle', async (req, res, next) => {
         },
         {
           model: User,
-          as: 'creditor',
+          as: "creditor",
         },
       ],
     });
 
-    if (!receipt) next(new Error('No receipt found'));
+    if (!receipt) next(new Error("No receipt found"));
 
     // check that items were found
     if (receipt.items.length) {
@@ -130,9 +177,9 @@ router.put('/:receiptId/settle', async (req, res, next) => {
               // set status of transaction to paid
               await currentItemizedTransaction.update({ paid: true });
               console.log(
-                'Updated itemized transaction: ',
+                "Updated itemized transaction: ",
                 currentItemizedTransaction.id,
-                ' for user: ',
+                " for user: ",
                 req.user.id
               );
             }
@@ -141,11 +188,11 @@ router.put('/:receiptId/settle', async (req, res, next) => {
       }
     } else {
       // If there are no items found that match criteria
-      res.status(400).send('No outstanding debts found for that receipt');
+      res.status(400).send("No outstanding debts found for that receipt");
       return;
     }
 
-    res.send('success');
+    res.send("success");
   } catch (err) {
     console.log(err);
     next(err);
