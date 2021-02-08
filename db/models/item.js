@@ -30,13 +30,13 @@ const Item = db.define('item', {
   //     notEmpty: true,
   //   },
   // },
-  quantity: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
-  },
+  // quantity: {
+  //   type: Sequelize.INTEGER,
+  //   allowNull: false,
+  //   validate: {
+  //     notEmpty: true,
+  //   },
+  // },
 });
 
 module.exports = Item;
