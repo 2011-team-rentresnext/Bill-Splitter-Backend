@@ -1,8 +1,9 @@
-const router = require("express").Router({ mergeParams: true });
-const { Op } = require("sequelize");
-const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
-const callGoogleVisionAsync = require("../db/utils/parser");
-console.log("testing console.log");
+const router = require('express').Router({ mergeParams: true });
+const { Op } = require('sequelize');
+const { Receipt, Item, ItemizedTransaction, User } = require('../db/models');
+const callGoogleVisionAsync = require('../db/utils/parser');
+console.log('testing console.log');
+
 module.exports = router;
 
 // Receipt.create({total, req.user.id})
@@ -22,7 +23,7 @@ router.post("/", async (req, res, next) => {
       creditorId: req.user.id,
     });
 
-    const seqItems = [];
+    const items = [];
 
     for (let i = 0; i < receiptObj.items.length; i++) {
       const item = receiptObj.items[i];
@@ -31,11 +32,12 @@ router.post("/", async (req, res, next) => {
         price: item.price,
         receiptId: seqReceipt.id,
       });
-      seqItems.push(seqItem);
+      const { id, name, price } = seqItem;
+      items.push({ id, name, price });
     }
-
-    seqReceipt.items = seqItems;
-    console.log("seqReceipt---->", seqReceipt);
+    
+    seqReceipt.toJSON().items = items;
+    console.log('seqReceipt---->', seqReceipt);
     res.json(seqReceipt);
   } catch (err) {
     next(err);
