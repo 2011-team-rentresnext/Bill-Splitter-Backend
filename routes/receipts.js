@@ -1,8 +1,10 @@
 const router = require("express").Router({ mergeParams: true });
 const { Op } = require("sequelize");
 const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
-import { API_KEY } from "../secrets";
-const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
+const fetch = require("node-fetch");
+
+const VISION_URL = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_CLOUD_API_KEY}`;
+
 module.exports = router;
 
 /* 
@@ -30,7 +32,7 @@ async function callGoogleVisionAsync(image) {
     ],
   };
 
-  const response = await fetch(API_URL, {
+  const response = await fetch(VISION_URL, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -39,7 +41,6 @@ async function callGoogleVisionAsync(image) {
     body: JSON.stringify(body),
   });
   const result = await response.json();
-  // console.log('callGoogleVisionAsync -> result', result);
 
   return result.responses[0].textAnnotations[0].description;
 }
@@ -53,10 +54,9 @@ function parseReceiptData(receiptText) {
 router.post("/", async (req, res, next) => {
   try {
     const receiptData = await callGoogleVisionAsync(req.body.base64);
-    console.log("IT IS WORKING IN THE BACKEND\n", receiptData);
 
     // make sequelize objects
-    res.json(receiptData);
+    res.send(receiptData);
   } catch (err) {
     next(err);
   }
