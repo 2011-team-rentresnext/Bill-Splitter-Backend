@@ -84,15 +84,14 @@ router.get("/:receiptId", async (req, res, next) => {
               include: {
                 model: User,
                 as: "debtor",
-                attributes: [["id", "debtorId"], "fullName"],
+                attributes: [["id", "debtorId"], "firstName", "lastName"],
               },
             },
           ],
         },
         {
           model: User,
-          as: "creditor",
-          attributes: [["id", "creditorId"], "fullName"],
+          attributes: [["id", "creditorId"], "firstName", "lastName"],
         },
       ],
     });
