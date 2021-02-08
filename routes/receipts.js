@@ -1,7 +1,66 @@
 const router = require("express").Router({ mergeParams: true });
 const { Op } = require("sequelize");
 const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
+const fetch = require("node-fetch");
+
+const VISION_URL = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_CLOUD_API_KEY}`;
+
 module.exports = router;
+
+/* 
+- get base64 from frontend
+- send base64 to cloud vision -> receive receipt data
+- send receipt to function -> function parses data
+- use data to create new receipt object
+	- use data to create new item objects
+- res.json back receipt and items 
+*/
+
+async function callGoogleVisionAsync(image) {
+  const body = {
+    requests: [
+      {
+        image: {
+          content: image,
+        },
+        features: [
+          {
+            type: "DOCUMENT_TEXT_DETECTION",
+          },
+        ],
+      },
+    ],
+  };
+
+  const response = await fetch(VISION_URL, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const result = await response.json();
+
+  return result.responses[0].textAnnotations[0].description;
+}
+
+function parseReceiptData(receiptText) {
+  const receipt = {};
+  const items = []; // array of item objects
+}
+
+// API/RECEIPTS/
+router.post("/", async (req, res, next) => {
+  try {
+    const receiptData = await callGoogleVisionAsync(req.body.base64);
+
+    // make sequelize objects
+    res.send(receiptData);
+  } catch (err) {
+    next(err);
+  }
+});
 
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
@@ -47,7 +106,7 @@ router.get("/:receiptId", async (req, res, next) => {
 /*
 Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
 */
-router.post("/:receiptId/settle", async (req, res, next) => {
+router.put("/:receiptId/settle", async (req, res, next) => {
   try {
     console.log("Settling for user: ", req.user.id);
     //look up receipt where id matches user and paid is false
