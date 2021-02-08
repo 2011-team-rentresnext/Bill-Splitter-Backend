@@ -32,7 +32,17 @@ async function seed() {
   }
 
   const users = await Promise.all(usersCreated);
-  console.log('fullName', users[0].fullName);
+  console.log("fullName", users[0].fullName);
+
+  // user for dummy receipt
+  const jerryFake = await User.create({
+    firstName: "Jerry",
+    lastName: "fake",
+    isAdmin: false,
+    email: `jerry.fake@gmail.com`,
+    password: "123",
+    phoneNumber: faker.phone.phoneNumberFormat(),
+  });
 
   /* --------------------receipts---------------------------*/
 
@@ -45,6 +55,12 @@ async function seed() {
     });
     receipts.push(receipt);
   }
+
+  // receipt for testing dummy receipt
+  const dummyReceipt = await Receipt.create({
+    creditorId: jerryFake.id,
+    total: 9163,
+  });
 
   /* --------------------items---------------------------*/
 
@@ -61,6 +77,43 @@ async function seed() {
       });
       items.push(item);
     }
+  }
+
+  const dummyReceiptItems = [
+    {
+      name: "meatloaf",
+      price: 2487,
+      quantity: 1,
+    },
+    {
+      name: "chicken",
+      price: 1922,
+      quantity: 1,
+    },
+    {
+      name: "salmon",
+      price: 3127,
+      quantity: 1,
+    },
+    {
+      name: "risotto",
+      price: 1982,
+      quantity: 1,
+    },
+    {
+      name: "coffee",
+      price: 867,
+      quantity: 1,
+    },
+    {
+      name: "beer",
+      price: 700,
+      quantity: 1,
+    },
+  ];
+
+  for (let i = 0; i < dummyReceiptItems.length; i++) {
+    await Item.create({ ...dummyReceiptItems[i], receiptId: dummyReceipt.id });
   }
 
   /* --------------------itemizedTransactions---------------------------*/
@@ -89,16 +142,16 @@ async function seed() {
 // This way we can isolate the error handling and exit trapping.
 // The `seed` function is concerned only with modifying the database.
 async function runSeed() {
-  console.log('seeding...');
+  console.log("seeding...");
   try {
     await seed();
   } catch (err) {
     console.error(err);
     process.exitCode = 1;
   } finally {
-    console.log('closing db connection');
+    console.log("closing db connection");
     await db.close();
-    console.log('db connection closed');
+    console.log("db connection closed");
   }
 }
 

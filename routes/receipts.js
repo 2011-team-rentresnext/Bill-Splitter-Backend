@@ -1,7 +1,48 @@
-const router = require("express").Router({ mergeParams: true });
-const { Op } = require("sequelize");
-const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
+const router = require('express').Router({ mergeParams: true });
+const { Op } = require('sequelize');
+const { Receipt, Item, ItemizedTransaction, User } = require('../db/models');
+const callGoogleVisionAsync = require('../db/utils/parser');
+console.log('testing console.log');
+
 module.exports = router;
+
+// Receipt.create({total, req.user.id})
+// items.forEach(item => {
+//   Item.create({})
+// })
+
+// API/RECEIPTS/
+router.post("/", async (req, res, next) => {
+  try {
+    console.log("Receipts post route!!!!");
+    const receiptObj = await callGoogleVisionAsync(req.body.base64);
+    console.log(receiptObj);
+    // make sequelize objects
+    const seqReceipt = await Receipt.create({
+      total: receiptObj.total,
+      creditorId: req.user.id,
+    });
+
+    const items = [];
+
+    for (let i = 0; i < receiptObj.items.length; i++) {
+      const item = receiptObj.items[i];
+      const seqItem = await Item.create({
+        name: item.name,
+        price: item.price,
+        receiptId: seqReceipt.id,
+      });
+      const { id, name, price } = seqItem;
+      items.push({ id, name, price });
+    }
+    
+    seqReceipt.toJSON().items = items;
+    console.log('seqReceipt---->', seqReceipt);
+    res.json(seqReceipt);
+  } catch (err) {
+    next(err);
+  }
+});
 
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
@@ -25,15 +66,14 @@ router.get("/:receiptId", async (req, res, next) => {
               include: {
                 model: User,
                 as: "debtor",
-                attributes: [["id", "debtorId"], "fullName"],
+                attributes: [["id", "debtorId"], "firstName", "lastName"],
               },
             },
           ],
         },
         {
           model: User,
-          as: "creditor",
-          attributes: [["id", "creditorId"], "fullName"],
+          attributes: [["id", "creditorId"], "firstName", "lastName"],
         },
       ],
     });
@@ -44,10 +84,59 @@ router.get("/:receiptId", async (req, res, next) => {
   }
 });
 
+// assigns users to receipt
+/*
+Example request:
+[
+    {
+        "userId": 102,
+        "assignedItems": [
+            {
+                "itemId": 270,
+                "price": 2487
+            },
+            {
+                "itemId": 271,
+                "price": 1922
+            }
+        ]
+    },
+    {
+        "userId": 103,
+        "assignedItems": [
+            {
+                "itemId": 272,
+                "price": 3127
+            }
+        ]
+    }
+]
+*/
+router.post("/:receiptId/assign", async (req, res, next) => {
+  try {
+    for (let i = 0; i < req.body.length; i++) {
+      let currentAssignment = req.body[i];
+      let currentUser = currentAssignment.userId;
+      for (let j = 0; j < currentAssignment.assignedItems.length; j++) {
+        let currentItem = currentAssignment.assignedItems[j];
+        await ItemizedTransaction.create({
+          amountOwed: currentItem.price,
+          debtorId: currentUser,
+          itemId: currentItem.itemId,
+        });
+      }
+    }
+    res.send("Success");
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 /*
 Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
 */
-router.post("/:receiptId/settle", async (req, res, next) => {
+router.put("/:receiptId/settle", async (req, res, next) => {
   try {
     console.log("Settling for user: ", req.user.id);
     //look up receipt where id matches user and paid is false
