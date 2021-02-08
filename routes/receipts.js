@@ -52,7 +52,7 @@ router.get("/:receiptId", async (req, res, next) => {
       include: [
         {
           model: Item,
-          attributes: [["id", "itemId"], "name", "price", "quantity"],
+          attributes: [["id", "itemId"], "name", "price"],
           include: [
             {
               model: ItemizedTransaction,
