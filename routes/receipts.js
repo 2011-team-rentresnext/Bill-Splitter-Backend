@@ -1,62 +1,42 @@
 const router = require("express").Router({ mergeParams: true });
 const { Op } = require("sequelize");
 const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
-const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_CLOUD_API_KEY}`;
-const fetch = require("node-fetch");
+const callGoogleVisionAsync = require("../db/utils/parser");
+console.log("testing console.log");
 module.exports = router;
 
-/* 
-- get base64 from frontend
-- send base64 to cloud vision -> receive receipt data
-- send receipt to function -> function parses data
-- use data to create new receipt object
-	- use data to create new item objects
-- res.json back receipt and items 
-*/
-
-async function callGoogleVisionAsync(image) {
-  const body = {
-    requests: [
-      {
-        image: {
-          content: image,
-        },
-        features: [
-          {
-            type: "DOCUMENT_TEXT_DETECTION",
-          },
-        ],
-      },
-    ],
-  };
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const result = await response.json();
-  // console.log('callGoogleVisionAsync -> result', result);
-
-  return result.responses[0].textAnnotations[0].description;
-}
-
-function parseReceiptData(receiptText) {
-  const receipt = {};
-  const items = []; // array of item objects
-}
+// Receipt.create({total, req.user.id})
+// items.forEach(item => {
+//   Item.create({})
+// })
 
 // API/RECEIPTS/
 router.post("/", async (req, res, next) => {
   try {
-    const receiptData = await callGoogleVisionAsync(req.body.base64);
-    console.log("IT IS WORKING IN THE BACKEND\n", receiptData);
-
+    console.log("Receipts post route!!!!");
+    const receiptObj = await callGoogleVisionAsync(req.body.base64);
+    console.log(receiptObj);
     // make sequelize objects
-    res.json(receiptData);
+    const seqReceipt = await Receipt.create({
+      total: receiptObj.total,
+      creditorId: req.user.id,
+    });
+
+    const seqItems = [];
+
+    for (let i = 0; i < receiptObj.items.length; i++) {
+      const item = receiptObj.items[i];
+      const seqItem = await Item.create({
+        name: item.name,
+        price: item.price,
+        receiptId: seqReceipt.id,
+      });
+      seqItems.push(seqItem);
+    }
+
+    seqReceipt.items = seqItems;
+    console.log("seqReceipt---->", seqReceipt);
+    res.json(seqReceipt);
   } catch (err) {
     next(err);
   }
