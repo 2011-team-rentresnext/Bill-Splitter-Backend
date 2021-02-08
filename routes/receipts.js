@@ -1,62 +1,43 @@
-const router = require("express").Router({ mergeParams: true });
-const { Op } = require("sequelize");
-const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
-const fetch = require("node-fetch");
-
-const VISION_URL = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_CLOUD_API_KEY}`;
-
+const router = require('express').Router({ mergeParams: true });
+const { Op } = require('sequelize');
+const { Receipt, Item, ItemizedTransaction, User } = require('../db/models');
+const callGoogleVisionAsync = require('../db/utils/parser');
+console.log('testing console.log')
 module.exports = router;
 
-/* 
-- get base64 from frontend
-- send base64 to cloud vision -> receive receipt data
-- send receipt to function -> function parses data
-- use data to create new receipt object
-	- use data to create new item objects
-- res.json back receipt and items 
-*/
-
-async function callGoogleVisionAsync(image) {
-  const body = {
-    requests: [
-      {
-        image: {
-          content: image,
-        },
-        features: [
-          {
-            type: "DOCUMENT_TEXT_DETECTION",
-          },
-        ],
-      },
-    ],
-  };
-
-  const response = await fetch(VISION_URL, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const result = await response.json();
-
-  return result.responses[0].textAnnotations[0].description;
-}
-
-function parseReceiptData(receiptText) {
-  const receipt = {};
-  const items = []; // array of item objects
-}
+// Receipt.create({total, req.user.id})
+// items.forEach(item => {
+//   Item.create({})
+// })
 
 // API/RECEIPTS/
-router.post("/", async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
-    const receiptData = await callGoogleVisionAsync(req.body.base64);
-
+    console.log('Receipts post route!!!!');
+    const receiptObj = await callGoogleVisionAsync(req.body.base64);
+    console.log(receiptObj);
     // make sequelize objects
-    res.send(receiptData);
+    const seqReceipt = await Receipt.create({
+      total: receiptObj.total,
+      creditorId: req.user.id,
+    });
+
+    const seqItems = []
+
+    for (let i = 0; i < receiptObj.items.length; i++) {
+      const item = receiptObj.items[i];
+      const seqItem = await Item.create({
+        name: item.name,
+        price: item.price,
+        receiptId: seqReceipt.id,
+
+      });
+      seqItems.push(seqItem);
+    }
+
+    seqReceipt.items = seqItems
+    console.log('seqReceipt---->', seqReceipt);
+    res.json(seqReceipt);
   } catch (err) {
     next(err);
   }
@@ -65,34 +46,34 @@ router.post("/", async (req, res, next) => {
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
 */
-router.get("/:receiptId", async (req, res, next) => {
+router.get('/:receiptId', async (req, res, next) => {
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
-      attributes: [["id", "receiptId"], "total"],
+      attributes: [['id', 'receiptId'], 'total'],
       include: [
         {
           model: Item,
-          attributes: [["id", "itemId"], "name", "price", "quantity"],
+          attributes: [['id', 'itemId'], 'name', 'price', 'quantity'],
           include: [
             {
               model: ItemizedTransaction,
               attributes: [
-                ["id", "itemizedTransactionId"],
-                "amountOwed",
-                "paid",
+                ['id', 'itemizedTransactionId'],
+                'amountOwed',
+                'paid',
               ],
               include: {
                 model: User,
-                as: "debtor",
-                attributes: [["id", "debtorId"], "fullName"],
+                as: 'debtor',
+                attributes: [['id', 'debtorId'], 'fullName'],
               },
             },
           ],
         },
         {
           model: User,
-          as: "creditor",
-          attributes: [["id", "creditorId"], "fullName"],
+          as: 'creditor',
+          attributes: [['id', 'creditorId'], 'fullName'],
         },
       ],
     });
@@ -106,9 +87,9 @@ router.get("/:receiptId", async (req, res, next) => {
 /*
 Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
 */
-router.put("/:receiptId/settle", async (req, res, next) => {
+router.put('/:receiptId/settle', async (req, res, next) => {
   try {
-    console.log("Settling for user: ", req.user.id);
+    console.log('Settling for user: ', req.user.id);
     //look up receipt where id matches user and paid is false
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
       include: [
@@ -126,12 +107,12 @@ router.put("/:receiptId/settle", async (req, res, next) => {
         },
         {
           model: User,
-          as: "creditor",
+          as: 'creditor',
         },
       ],
     });
 
-    if (!receipt) next(new Error("No receipt found"));
+    if (!receipt) next(new Error('No receipt found'));
 
     // check that items were found
     if (receipt.items.length) {
@@ -149,9 +130,9 @@ router.put("/:receiptId/settle", async (req, res, next) => {
               // set status of transaction to paid
               await currentItemizedTransaction.update({ paid: true });
               console.log(
-                "Updated itemized transaction: ",
+                'Updated itemized transaction: ',
                 currentItemizedTransaction.id,
-                " for user: ",
+                ' for user: ',
                 req.user.id
               );
             }
@@ -160,11 +141,11 @@ router.put("/:receiptId/settle", async (req, res, next) => {
       }
     } else {
       // If there are no items found that match criteria
-      res.status(400).send("No outstanding debts found for that receipt");
+      res.status(400).send('No outstanding debts found for that receipt');
       return;
     }
 
-    res.send("success");
+    res.send('success');
   } catch (err) {
     console.log(err);
     next(err);
