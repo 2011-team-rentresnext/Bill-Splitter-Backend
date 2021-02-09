@@ -15,6 +15,7 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
 
+// what?
 // passport registration
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
@@ -46,7 +47,6 @@ app.use((req, res, next) => {
 });
 app.use(passport.initialize());
 app.use(passport.session());
-
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "*");
@@ -54,7 +54,6 @@ app.use(function (req, res, next) {
   res.header("x-powered-by", "serverless-express");
   next();
 });
-
 // API ROUTES
 app.use("/api", require("./routes"));
 

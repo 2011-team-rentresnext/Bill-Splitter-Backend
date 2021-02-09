@@ -56,14 +56,23 @@ router.post('/', async (req, res, next) => {
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
 */
+<<<<<<< HEAD
 router.get('/:receiptId', async (req, res, next) => {
+=======
+//route not being used
+router.get("/:receiptId", async (req, res, next) => {
+>>>>>>> main
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
       attributes: [['id', 'receiptId'], 'total'],
       include: [
         {
           model: Item,
+<<<<<<< HEAD
           attributes: [['id', 'itemId'], 'name', 'price', 'quantity'],
+=======
+          attributes: [["id", "itemId"], "name", "price"],
+>>>>>>> main
           include: [
             {
               model: ItemizedTransaction,
@@ -74,16 +83,25 @@ router.get('/:receiptId', async (req, res, next) => {
               ],
               include: {
                 model: User,
+<<<<<<< HEAD
                 as: 'debtor',
                 attributes: [['id', 'debtorId'], 'fullName'],
+=======
+                as: "debtor",
+                attributes: [["id", "debtorId"], "firstName", "lastName"],
+>>>>>>> main
               },
             },
           ],
         },
         {
           model: User,
+<<<<<<< HEAD
           as: 'creditor',
           attributes: [['id', 'creditorId'], 'fullName'],
+=======
+          attributes: [["id", "creditorId"], "firstName", "lastName"],
+>>>>>>> main
         },
       ],
     })
@@ -93,6 +111,55 @@ router.get('/:receiptId', async (req, res, next) => {
     next(err)
   }
 })
+
+// assigns users to receipt
+/*
+Example request:
+[
+    {
+        "userId": 102,
+        "assignedItems": [
+            {
+                "itemId": 270,
+                "price": 2487
+            },
+            {
+                "itemId": 271,
+                "price": 1922
+            }
+        ]
+    },
+    {
+        "userId": 103,
+        "assignedItems": [
+            {
+                "itemId": 272,
+                "price": 3127
+            }
+        ]
+    }
+]
+*/
+router.post("/:receiptId/assign", async (req, res, next) => {
+  try {
+    for (let i = 0; i < req.body.length; i++) {
+      let currentAssignment = req.body[i];
+      let currentUser = currentAssignment.userId;
+      for (let j = 0; j < currentAssignment.assignedItems.length; j++) {
+        let currentItem = currentAssignment.assignedItems[j];
+        await ItemizedTransaction.create({
+          amountOwed: currentItem.price,
+          debtorId: currentUser,
+          itemId: currentItem.itemId,
+        });
+      }
+    }
+    res.send("Success");
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
 
 /*
 Takes in a receipt ID and settles the debt on that receipt for a logged in user (settling debt means changing itemized transaction to paid = true)
