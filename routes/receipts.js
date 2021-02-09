@@ -56,23 +56,14 @@ router.post('/', async (req, res, next) => {
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
 */
-<<<<<<< HEAD
-router.get('/:receiptId', async (req, res, next) => {
-=======
-//route not being used
 router.get("/:receiptId", async (req, res, next) => {
->>>>>>> main
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
       attributes: [['id', 'receiptId'], 'total'],
       include: [
         {
           model: Item,
-<<<<<<< HEAD
-          attributes: [['id', 'itemId'], 'name', 'price', 'quantity'],
-=======
           attributes: [["id", "itemId"], "name", "price"],
->>>>>>> main
           include: [
             {
               model: ItemizedTransaction,
@@ -83,25 +74,15 @@ router.get("/:receiptId", async (req, res, next) => {
               ],
               include: {
                 model: User,
-<<<<<<< HEAD
-                as: 'debtor',
-                attributes: [['id', 'debtorId'], 'fullName'],
-=======
                 as: "debtor",
                 attributes: [["id", "debtorId"], "firstName", "lastName"],
->>>>>>> main
               },
             },
           ],
         },
         {
           model: User,
-<<<<<<< HEAD
-          as: 'creditor',
-          attributes: [['id', 'creditorId'], 'fullName'],
-=======
           attributes: [["id", "creditorId"], "firstName", "lastName"],
->>>>>>> main
         },
       ],
     })
