@@ -1,8 +1,8 @@
-const router = require('express').Router({ mergeParams: true });
-const { Op } = require('sequelize');
-const { Receipt, Item, ItemizedTransaction, User } = require('../db/models');
-const callGoogleVisionAsync = require('../db/utils/parser');
-console.log('testing console.log');
+const router = require("express").Router({ mergeParams: true });
+const { Op } = require("sequelize");
+const { Receipt, Item, ItemizedTransaction, User } = require("../db/models");
+const callGoogleVisionAsync = require("../db/utils/parser");
+console.log("testing console.log");
 
 module.exports = router;
 
@@ -35,10 +35,19 @@ router.post("/", async (req, res, next) => {
       const { id, name, price } = seqItem;
       items.push({ id, name, price });
     }
-    
-    seqReceipt.toJSON().items = items;
-    console.log('seqReceipt---->', seqReceipt);
-    res.json(seqReceipt);
+
+    const returnReceipt = await Receipt.findByPk(seqReceipt.id, {
+      include: [
+        {
+          model: Item,
+          attributes: ["id", "name", "price"],
+        },
+      ],
+    });
+
+    console.log("returnReceipt---->", returnReceipt);
+
+    res.json(returnReceipt);
   } catch (err) {
     next(err);
   }
@@ -47,6 +56,7 @@ router.post("/", async (req, res, next) => {
 /*
 Takes in a receipt ID and returns the receipt with nested models (Creditor, Items, Itemized transactions, Debtors)
 */
+//route not being used
 router.get("/:receiptId", async (req, res, next) => {
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
