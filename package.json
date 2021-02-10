@@ -9,8 +9,12 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "faker": "^5.1.0",
+<<<<<<< HEAD
+    "nodemon": "^2.0.7",
+=======
     "fetch": "^1.1.0",
     "node-fetch": "^2.6.1",
+>>>>>>> main
     "passport": "^0.4.1",
     "pg": "^8.5.1",
     "sequelize": "^6.5.0",
@@ -22,7 +26,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed": "node script/seed.js"
+    "seed": "node script/seed.js",
+    "start-server": "nodemon listen.js"
   },
   "author": "",
   "license": "ISC"
