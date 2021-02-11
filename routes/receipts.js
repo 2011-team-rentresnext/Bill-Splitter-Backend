@@ -2,6 +2,10 @@ const router = require('express').Router({mergeParams: true})
 const {Op} = require('sequelize')
 const {Receipt, Item, ItemizedTransaction, User} = require('../db/models')
 const callGoogleVisionAsync = require('../utils/parser')
+<<<<<<< HEAD
+=======
+console.log('testing console.log')
+>>>>>>> 39b42d79a4622dfcf6a87e415f952dc2df77d157
 
 module.exports = router
 
@@ -16,7 +20,10 @@ router.post('/', async (req, res, next) => {
     console.log('Receipts post route!!!!')
     const receiptObj = await callGoogleVisionAsync(req.body.base64)
     console.log(receiptObj)
+<<<<<<< HEAD
     // make sequelize objects
+=======
+>>>>>>> 39b42d79a4622dfcf6a87e415f952dc2df77d157
     const seqReceipt = await Receipt.create({
       total: receiptObj.total,
       creditorId: req.user.id,
@@ -59,6 +66,10 @@ Takes in a receipt ID and returns the receipt with nested models (Creditor, Item
 router.get('/:receiptId', async (req, res, next) => {
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
+<<<<<<< HEAD
+=======
+      attributes: [['id', 'receiptId'], 'total'],
+>>>>>>> 39b42d79a4622dfcf6a87e415f952dc2df77d157
       include: [
         {
           model: Item,
@@ -88,7 +99,11 @@ router.get('/:receiptId', async (req, res, next) => {
     res.json(receipt)
   } catch (err) {
     console.log(err)
+<<<<<<< HEAD
     throw err
+=======
+    next(err)
+>>>>>>> 39b42d79a4622dfcf6a87e415f952dc2df77d157
   }
 })
 
@@ -122,6 +137,7 @@ Example request:
 */
 router.post('/:receiptId/assign', async (req, res, next) => {
   try {
+    console.log('ASSIGNMENT HIT!! OOGA WOOGA')
     for (let i = 0; i < req.body.length; i++) {
       let currentAssignment = req.body[i]
       let currentUser = currentAssignment.userId
@@ -133,6 +149,8 @@ router.post('/:receiptId/assign', async (req, res, next) => {
           itemId: currentItem.itemId,
         })
       }
+      const userInfo = User.findbyPk(currentUser)
+      console.log('user info', userInfo)
     }
     res.send('Success')
   } catch (err) {
