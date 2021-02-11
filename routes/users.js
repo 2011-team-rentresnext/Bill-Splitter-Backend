@@ -1,7 +1,8 @@
 const router = require('express').Router({mergeParams: true})
 const {Op} = require('sequelize')
-const User = require('../db/models/user')
+const {User, ItemizedTransaction} = require('../db/models')
 module.exports = router
+
 
 // /api/users/search?name=<NAME>
 /*
@@ -22,5 +23,21 @@ router.get('/search', async (req, res, next) => {
     }
   } catch (err) {
     next(err)
+  }
+})
+
+
+//users debts route
+
+router.get('/:userId/debts', async (req, res, next) =>{
+  try {
+    let debts = await ItemizedTransaction.findAll({
+      where: {
+        debtorId: req.params.userId
+      }
+    })
+    res.json(debts)
+  } catch (error) {
+    next(error)
   }
 })
