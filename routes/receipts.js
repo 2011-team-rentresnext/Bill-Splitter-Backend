@@ -123,6 +123,7 @@ Example request:
 */
 router.post('/:receiptId/assign', async (req, res, next) => {
   try {
+    console.log('ASSIGNMENT HIT!! OOGA WOOGA')
     for (let i = 0; i < req.body.length; i++) {
       let currentAssignment = req.body[i]
       let currentUser = currentAssignment.userId
@@ -134,6 +135,8 @@ router.post('/:receiptId/assign', async (req, res, next) => {
           itemId: currentItem.itemId,
         })
       }
+      const userInfo = User.findbyPk(currentUser)
+      console.log('user info', userInfo)
     }
     res.send('Success')
   } catch (err) {
