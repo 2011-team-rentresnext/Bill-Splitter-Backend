@@ -33,7 +33,8 @@ router.get('/:userId/debts', async (req, res, next) =>{
   try {
     let debts = await ItemizedTransaction.findAll({
       where: {
-        debtorId: req.params.userId
+        debtorId: req.params.userId,
+        paid: false
       }
     })
     res.json(debts)
