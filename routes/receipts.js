@@ -2,7 +2,7 @@ const router = require('express').Router({mergeParams: true})
 const {Op} = require('sequelize')
 const {Receipt, Item, ItemizedTransaction, User} = require('../db/models')
 const callGoogleVisionAsync = require('../utils/parser')
-console.log('testing console.log')
+const {emailNotif} = require('../utils/notify')
 
 module.exports = router
 
@@ -14,9 +14,7 @@ module.exports = router
 // API/RECEIPTS/
 router.post('/', async (req, res, next) => {
   try {
-    console.log('Receipts post route!!!!')
     const receiptObj = await callGoogleVisionAsync(req.body.base64)
-    console.log(receiptObj)
     const seqReceipt = await Receipt.create({
       total: receiptObj.total,
       creditorId: req.user.id,
@@ -43,9 +41,6 @@ router.post('/', async (req, res, next) => {
         },
       ],
     })
-
-    console.log('returnReceipt---->', returnReceipt)
-
     res.json(returnReceipt)
   } catch (err) {
     next(err)
@@ -123,10 +118,13 @@ Example request:
 */
 router.post('/:receiptId/assign', async (req, res, next) => {
   try {
-    console.log('ASSIGNMENT HIT!! OOGA WOOGA')
+    const users = {} // {id: items}
+
     for (let i = 0; i < req.body.length; i++) {
       let currentAssignment = req.body[i]
       let currentUser = currentAssignment.userId
+      users[currentUser] = currentAssignment.assignedItems
+
       for (let j = 0; j < currentAssignment.assignedItems.length; j++) {
         let currentItem = currentAssignment.assignedItems[j]
         await ItemizedTransaction.create({
@@ -135,9 +133,8 @@ router.post('/:receiptId/assign', async (req, res, next) => {
           itemId: currentItem.itemId,
         })
       }
-      const userInfo = User.findbyPk(currentUser)
-      console.log('user info', userInfo)
     }
+    await emailNotif(users)
     res.send('Success')
   } catch (err) {
     console.log(err)
