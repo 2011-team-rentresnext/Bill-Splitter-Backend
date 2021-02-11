@@ -2,7 +2,7 @@ const router = require('express').Router({mergeParams: true})
 const {Op} = require('sequelize')
 const {Receipt, Item, ItemizedTransaction, User} = require('../db/models')
 const callGoogleVisionAsync = require('../utils/parser')
-const {emailNotif} = require('../utils/notify')
+const notify = require('../utils/notify')
 
 module.exports = router
 
@@ -134,7 +134,7 @@ router.post('/:receiptId/assign', async (req, res, next) => {
         })
       }
     }
-    await emailNotif(users)
+    await notify(users)
     res.send('Success')
   } catch (err) {
     console.log(err)
