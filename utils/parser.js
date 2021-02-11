@@ -56,7 +56,7 @@ function parseReceiptData(receiptText) {
       names.push(element);
   });
   names.forEach((name, i) => items.push({ name, price: prices[i] }));
-  total = prices.sort((a, b) => a - b)[prices.length - 1];
+  total = Math.max(...prices);
 
   return { items, total };
 }

@@ -6,12 +6,12 @@ console.log("testing console.log");
 
 module.exports = router;
 
-// Receipt.create({total, req.user.id})
-// items.forEach(item => {
-//   Item.create({})
-// })
-
 // API/RECEIPTS/
+
+router.get("/:userId", async (req, res, next) => {
+
+})
+
 router.post("/", async (req, res, next) => {
   try {
     console.log("Receipts post route!!!!");
