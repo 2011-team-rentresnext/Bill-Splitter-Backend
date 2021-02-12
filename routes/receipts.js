@@ -7,14 +7,47 @@ console.log('testing console.log')
 module.exports = router
 
 // API/RECEIPTS/
-
-router.get('/:userId', async (req, res, next) => {})
+/*
+Rreturns an array in of unique receipts where the user is involved as a creditor and/or debtor. The array is in desceding order according to receipt ID
+*/
+router.get('/history', async (req, res, next) => {
+  try {
+    const receiptsAsDebtor = await Receipt.findAll({
+      include: {
+        model: Item,
+        where: {},
+        include: {
+          model: ItemizedTransaction,
+          where: {
+            debtorId: 85,
+            // [Op.not]: [{debtorId: Sequelize.col('receipt.creditorId')}],
+          },
+        },
+      },
+    })
+    const receiptsAsCreditor = await Receipt.findAll({
+      where: {creditorId: 85},
+    })
+    const receiptsAsCreditorIds = receiptsAsCreditor.map(
+      (receipt) => receipt.id
+    )
+    const filteredReceiptsAsDebtor = receiptsAsDebtor.filter(
+      (receipt) => !receiptsAsCreditorIds.includes(receipt.id)
+    )
+    const allReceiptsFiltered = [
+      ...receiptsAsCreditor,
+      ...filteredReceiptsAsDebtor,
+    ]
+    allReceiptsFiltered.sort((a, b) => b.id - a.id)
+    res.json(allReceiptsFiltered)
+  } catch (error) {
+    console.log(error)
+  }
+})
 
 router.post('/', async (req, res, next) => {
   try {
-    console.log('Receipts post route!!!!')
     const receiptObj = await callGoogleVisionAsync(req.body.base64)
-    console.log(receiptObj)
     const seqReceipt = await Receipt.create({
       total: receiptObj.total,
       creditorId: req.user.id,
