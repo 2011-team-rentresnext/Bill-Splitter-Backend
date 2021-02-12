@@ -3,7 +3,6 @@ const {Op} = require('sequelize')
 const {User, ItemizedTransaction} = require('../db/models')
 module.exports = router
 
-
 // /api/users/search?name=<NAME>
 /*
 Takes in a name (search term) and searches for users in the DB that match that name, returns an array of users matching the search term
@@ -26,16 +25,15 @@ router.get('/search', async (req, res, next) => {
   }
 })
 
-
 //users debts route
 
-router.get('/:userId/debts', async (req, res, next) =>{
+router.get('/:userId/debts', async (req, res, next) => {
   try {
     let debts = await ItemizedTransaction.findAll({
       where: {
         debtorId: req.params.userId,
-        paid: false
-      }
+        paid: false,
+      },
     })
     res.json(debts)
   } catch (error) {
