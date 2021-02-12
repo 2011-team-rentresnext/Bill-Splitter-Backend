@@ -57,13 +57,18 @@ router.get('/:userId/debts', async (req, res, next) => {
 })
 
 const arrangeDebtsByReceipt = (queryResponse) => {
+  // arranges itemizedTransactions into "receipt" objects, i.e. information about the receipt including only the items assigned to the debtor
   const arrangedObj = queryResponse.reduce((resultObj, itemizedTransaction) => {
+    // grab the properties we need to build receipt object
     const receiptId = itemizedTransaction.item.receiptId
     const creditor = itemizedTransaction.item.receipt.user
     let item = itemizedTransaction.item
     let receipt = itemizedTransaction.item.receipt
+    // don't include nested items
     delete item.receipt
     delete receipt.user
+
+    // build new receipt object or add to existing
     if (resultObj[receiptId]) {
       // add to receipt
       resultObj[receiptId].items.push(item)
@@ -77,7 +82,10 @@ const arrangeDebtsByReceipt = (queryResponse) => {
     }
     return resultObj
   }, {})
+
+  // turns final result into an array of receipt objects
   return Object.keys(arrangedObj).map((key) => {
+    // add a property for the total debt owed on the receipt object
     arrangedObj[key].totalDebt = arrangedObj[key].items.reduce(
       (total, item) => {
         return total + item.price
