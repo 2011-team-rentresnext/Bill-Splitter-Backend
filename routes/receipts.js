@@ -15,6 +15,7 @@ module.exports = router
 router.post('/', async (req, res, next) => {
   try {
     const receiptObj = await callGoogleVisionAsync(req.body.base64)
+    // make sequelize objects
     const seqReceipt = await Receipt.create({
       total: receiptObj.total,
       creditorId: req.user.id,
@@ -54,11 +55,9 @@ Takes in a receipt ID and returns the receipt with nested models (Creditor, Item
 router.get('/:receiptId', async (req, res, next) => {
   try {
     const receipt = await Receipt.findByPk(+req.params.receiptId, {
-      attributes: [['id', 'receiptId'], 'total'],
       include: [
         {
           model: Item,
-          attributes: [['id', 'itemId'], 'name', 'price'],
           include: [
             {
               model: ItemizedTransaction,
@@ -84,7 +83,7 @@ router.get('/:receiptId', async (req, res, next) => {
     res.json(receipt)
   } catch (err) {
     console.log(err)
-    next(err)
+    throw err
   }
 })
 
@@ -119,7 +118,6 @@ Example request:
 router.post('/:receiptId/assign', async (req, res, next) => {
   try {
     const users = {} // {id: items}
-
     for (let i = 0; i < req.body.length; i++) {
       let currentAssignment = req.body[i]
       let currentUser = currentAssignment.userId
