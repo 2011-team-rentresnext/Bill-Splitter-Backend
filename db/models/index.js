@@ -21,6 +21,7 @@ Item.belongsToMany(User, {
 
 Item.hasMany(ItemizedTransaction)
 ItemizedTransaction.belongsTo(User, {as: 'debtor'})
+ItemizedTransaction.belongsTo(Item)
 
 module.exports = {
   User,

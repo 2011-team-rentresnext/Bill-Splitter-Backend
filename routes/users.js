@@ -1,8 +1,8 @@
 const router = require('express').Router({mergeParams: true})
 const {Op} = require('sequelize')
-const {User, ItemizedTransaction} = require('../db/models')
-module.exports = router
+const {User, ItemizedTransaction, Receipt, Item} = require('../db/models')
 
+module.exports = router
 
 // /api/users/search?name=<NAME>
 /*
@@ -26,18 +26,72 @@ router.get('/search', async (req, res, next) => {
   }
 })
 
-
 //users debts route
 
-router.get('/:userId/debts', async (req, res, next) =>{
+router.get('/:userId/debts', async (req, res, next) => {
   try {
     let debts = await ItemizedTransaction.findAll({
+      raw: true,
+      nest: true,
       where: {
-        debtorId: req.params.userId
-      }
+        debtorId: req.params.userId,
+        paid: false,
+      },
+      include: [
+        {
+          model: Item,
+          include: {
+            model: Receipt,
+            include: {
+              model: User,
+              attributes: ['id', 'firstName', 'lastName', 'email'],
+            },
+          },
+        },
+      ],
     })
-    res.json(debts)
+    res.json(arrangeDebtsByReceipt(debts))
   } catch (error) {
     next(error)
   }
 })
+
+const arrangeDebtsByReceipt = (queryResponse) => {
+  // arranges itemizedTransactions into "receipt" objects, i.e. information about the receipt including only the items assigned to the debtor
+  const arrangedObj = queryResponse.reduce((resultObj, itemizedTransaction) => {
+    // grab the properties we need to build receipt object
+    const receiptId = itemizedTransaction.item.receiptId
+    const creditor = itemizedTransaction.item.receipt.user
+    let item = itemizedTransaction.item
+    let receipt = itemizedTransaction.item.receipt
+    // don't include nested items
+    delete item.receipt
+    delete receipt.user
+
+    // build new receipt object or add to existing
+    if (resultObj[receiptId]) {
+      // add to receipt
+      resultObj[receiptId].items.push(item)
+    } else {
+      // create new receipt
+      resultObj[receiptId] = {
+        creditor,
+        receipt,
+        items: [item],
+      }
+    }
+    return resultObj
+  }, {})
+
+  // turns final result into an array of receipt objects
+  return Object.keys(arrangedObj).map((key) => {
+    // add a property for the total debt owed on the receipt object
+    arrangedObj[key].totalDebt = arrangedObj[key].items.reduce(
+      (total, item) => {
+        return total + item.price
+      },
+      0
+    )
+    return arrangedObj[key]
+  })
+}
