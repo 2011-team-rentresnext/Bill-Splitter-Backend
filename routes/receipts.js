@@ -19,14 +19,14 @@ router.get('/history', async (req, res, next) => {
         include: {
           model: ItemizedTransaction,
           where: {
-            debtorId: req.user.id,
+            debtorId: 85,
             // [Op.not]: [{debtorId: Sequelize.col('receipt.creditorId')}],
           },
         },
       },
     })
     const receiptsAsCreditor = await Receipt.findAll({
-      where: {creditorId: req.user.id},
+      where: {creditorId: 85},
     })
     const receiptsAsCreditorIds = receiptsAsCreditor.map(
       (receipt) => receipt.id
