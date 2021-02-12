@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const {User, ItemizedTransaction} = require('../db/models')
 module.exports = router
-console.log('is it logging??')
+
 router.post('/login', async (req, res, next) => {
   try {
     console.log('login route')

@@ -6,12 +6,45 @@ const notify = require('../utils/notify')
 
 module.exports = router
 
-// Receipt.create({total, req.user.id})
-// items.forEach(item => {
-//   Item.create({})
-// })
-
 // API/RECEIPTS/
+/*
+Rreturns an array in of unique receipts where the user is involved as a creditor and/or debtor. The array is in desceding order according to receipt ID
+*/
+router.get('/history', async (req, res, next) => {
+  try {
+    const receiptsAsDebtor = await Receipt.findAll({
+      include: {
+        model: Item,
+        where: {},
+        include: {
+          model: ItemizedTransaction,
+          where: {
+            debtorId: 85,
+            // [Op.not]: [{debtorId: Sequelize.col('receipt.creditorId')}],
+          },
+        },
+      },
+    })
+    const receiptsAsCreditor = await Receipt.findAll({
+      where: {creditorId: 85},
+    })
+    const receiptsAsCreditorIds = receiptsAsCreditor.map(
+      (receipt) => receipt.id
+    )
+    const filteredReceiptsAsDebtor = receiptsAsDebtor.filter(
+      (receipt) => !receiptsAsCreditorIds.includes(receipt.id)
+    )
+    const allReceiptsFiltered = [
+      ...receiptsAsCreditor,
+      ...filteredReceiptsAsDebtor,
+    ]
+    allReceiptsFiltered.sort((a, b) => b.id - a.id)
+    res.json(allReceiptsFiltered)
+  } catch (error) {
+    console.log(error)
+  }
+})
+
 router.post('/', async (req, res, next) => {
   try {
     const receiptObj = await callGoogleVisionAsync(req.body.base64)
