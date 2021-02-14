@@ -20,7 +20,7 @@ router.get('/history', async (req, res, next) => {
           include: {
             model: ItemizedTransaction,
             where: {
-              debtorId: 85,
+              debtorId: req.user.id,
               // [Op.not]: [{debtorId: Sequelize.col('receipt.creditorId')}],
             },
           },
@@ -32,7 +32,7 @@ router.get('/history', async (req, res, next) => {
       ],
     })
     const receiptsAsCreditor = await Receipt.findAll({
-      where: {creditorId: 85},
+      where: {creditorId: req.user.id},
       include: {
         model: User,
         attributes: ['id', 'firstName', 'lastName'],
