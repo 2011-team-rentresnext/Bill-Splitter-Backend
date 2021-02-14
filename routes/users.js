@@ -26,6 +26,22 @@ router.get('/search', async (req, res, next) => {
   }
 })
 
+// users notification route
+router.get('/:userId/notifications', async (req, res, next) => {
+  try {
+    let debts = await ItemizedTransaction.findAll({
+      where: {
+        debtorId: req.params.userId,
+        paid: false,
+      },
+    })
+    res.json({hasOutstandingDebts: !!debts.length})
+  } catch (err) {
+    console.log(err)
+    throw err
+  }
+})
+
 //users debts route
 
 router.get('/:userId/debts', async (req, res, next) => {

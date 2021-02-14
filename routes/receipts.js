@@ -196,7 +196,6 @@ router.put('/:receiptId/settle', async (req, res, next) => {
         },
         {
           model: User,
-          as: 'creditor',
         },
       ],
     })
