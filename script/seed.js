@@ -32,7 +32,6 @@ async function seed() {
   }
 
   const users = await Promise.all(usersCreated)
-  console.log('fullName', users[0].fullName)
 
   // user for dummy receipt
   const jerryFake = await User.create({

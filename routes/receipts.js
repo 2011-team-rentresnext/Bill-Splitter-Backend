@@ -13,20 +13,30 @@ Rreturns an array in of unique receipts where the user is involved as a creditor
 router.get('/history', async (req, res, next) => {
   try {
     const receiptsAsDebtor = await Receipt.findAll({
-      include: {
-        model: Item,
-        where: {},
-        include: {
-          model: ItemizedTransaction,
-          where: {
-            debtorId: 85,
-            // [Op.not]: [{debtorId: Sequelize.col('receipt.creditorId')}],
+      include: [
+        {
+          model: Item,
+          where: {},
+          include: {
+            model: ItemizedTransaction,
+            where: {
+              debtorId: req.user.id,
+              // [Op.not]: [{debtorId: Sequelize.col('receipt.creditorId')}],
+            },
           },
         },
-      },
+        {
+          model: User,
+          attributes: ['id', 'firstName', 'lastName'],
+        },
+      ],
     })
     const receiptsAsCreditor = await Receipt.findAll({
-      where: {creditorId: 85},
+      where: {creditorId: req.user.id},
+      include: {
+        model: User,
+        attributes: ['id', 'firstName', 'lastName'],
+      },
     })
     const receiptsAsCreditorIds = receiptsAsCreditor.map(
       (receipt) => receipt.id
