@@ -16,7 +16,7 @@ async function sendEmail(user, text, html) {
 
   const mailOptions = {
     from: '"SLICED APP" <split@mail.ee>',
-    to: user.dataValues.email,
+    to: user.dataValues.email.toLowerCase(),
     subject: 'Payment Requested',
     text,
     html,
@@ -49,7 +49,7 @@ const createEmail = (user, items) => {
 
   const text = `Hello ${user.dataValues.firstName} ${user.dataValues.lastName},\n\nYour payment of ${totalPrice} is requested to cover your recent meal.\n\nPlease use the Sliced App to complete the payment at your earliest convenience.\nThank you!`
 
-  const html = `<div style="font-size: 12px; font-family: Arial;">
+  const html = `<div style="font-size: 16px; font-family: Arial;">
 	<p>Hello ${user.dataValues.firstName} ${user.dataValues.lastName},<p>
 	<br>
 	<p>Your payment of ${totalPrice} is requested to cover your recent meal.</p>
